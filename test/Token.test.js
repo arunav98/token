@@ -3,7 +3,7 @@ import {EVM_Revert, tokens} from './helper'
 
 require('chai').use(require('chai-as-promised')).should()
 
-contract('Token',([deployer,receiver])=>{
+contract('Token',([deployer,receiver,ex])=>{
     let token
     const name='ArC Token',symbol='ArC',decimal='18',totalSupply=tokens(100000)
     beforeEach(async()=>{
@@ -11,9 +11,7 @@ contract('Token',([deployer,receiver])=>{
         token= await Token.new();
     })
     describe('deployment',()=>{
-        
-        it('track the name',async ()=>{
-            
+        it('track the name',async ()=>{          
             //read token name
             const result=await token.name()
             //check the constrain
@@ -41,15 +39,16 @@ contract('Token',([deployer,receiver])=>{
             result.toString().should.equal(totalSupply.toString())
         })
     })
+
     describe('send token',()=>{
         describe('success',async()=>{
             let amount
-        let result
-        beforeEach(async()=>{
-            //transfer
-            amount=tokens(250)
-            result = await token.transfer(receiver,amount,{from: deployer})
-        })
+            let result
+            beforeEach(async()=>{
+                //transfer
+                amount=tokens(250)
+                result = await token.transfer(receiver,amount,{from: deployer})
+            })
         it('tranfer token', async ()=>{
             let balanceOf
             //before transfer
@@ -88,5 +87,78 @@ contract('Token',([deployer,receiver])=>{
                 await token.transfer(0x0,invalidAmount, {from: deployer}).should.be.rejectedWith
             })
         })
+    })
+
+    describe('approve transfer',async()=>{
+        //some error of invalid address
+        // let result
+        // let amount
+
+        // beforeEach(async()=>{
+        //     amount=tokens(1000)
+        //     result= await token.approve(ex,amount,{from:deployer})
+        // })  
+        // describe('check',async()=>{
+        //     // console.log(deployer)
+        //     // console.log(ex)
+        //     it('check',async()=>{ 
+        //         const allowance=await token.allowance(deployer,ex)
+        //         allowance.toString().should.equal(amount.toString())
+        //         console.log(allowance)
+        //     })
+        // }) 
+        
+    })
+
+    describe('send token transfer frp,',()=>{
+        let amount
+        let result
+        beforeEach(async()=>{
+            amount=tokens(50)
+            await token.approve(ex,amount,{from:deployer})
+        })
+        describe('success',async()=>{
+            beforeEach(async()=>{
+                //transfer                
+                result = await token.transferFrom(deployer,receiver,amount,{from: ex})
+            })
+        it('tranfer token from', async ()=>{
+            let balanceOf
+            //before transfer
+            // balanceOf = await token.balanceOf(deployer)
+            // console.log('before bal',balanceOf.toString())
+            // balanceOf = await token.balanceOf(receiver)
+            // console.log('before bal',balanceOf.toString())
+
+            //after transfer
+            balanceOf = await token.balanceOf(deployer)
+            //console.log('After bal deployer ',balanceOf.toString())
+            balanceOf = await token.balanceOf(receiver)
+            //console.log('After bal receiver ',balanceOf.toString())
+        })
+
+        // it('emit a tranfer event',async ()=>{
+        //     const log =result.logs[0]
+        //     log.event.should.eq('Transfer')
+        //     const event = log.args
+        //     event.from.toString().should.equal(deployer,'sender is correct')
+        //     event.to.toString().should.equal(receiver,'receiver is correct')
+        //     event.value.toString().should.equal(amount.toString(),'value is correct')
+        // })
+        })
+
+        // describe('failure', async()=>{
+        //     it('insufficient balance',async() => {
+        //         let invalidAmount
+        //         invalidAmount=tokens(10000000)
+        //         await token.transfer(receiver,invalidAmount, {from: deployer}).should.be.rejectedWith(EVM_Revert)
+        //     })
+
+        //     it('invalid address',async() => {
+        //         let invalidAmount
+        //         invalidAmount=tokens(100)
+        //         await token.transfer(0x0,invalidAmount, {from: deployer}).should.be.rejectedWith
+        //     })
+        // })
     })
 })
